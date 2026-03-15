@@ -9,22 +9,22 @@ cap = cv2.VideoCapture(0)
 print("Webcam started. Press 'q' to quit.")
 
 while True:
-    # Read a frame from webcam
+    # Read a frame from the webcam
     success, frame = cap.read()
 
-    # If frame wasn't captured, skip
+    # If the frame wasn't captured properly, stop
     if not success:
         print("Failed to grab frame")
         break
 
-    # Show the frame in a window
+    # Show the frame in a window on screen
     cv2.imshow("Webcam Test", frame)
 
-    # Press 'q' to quit
+    # Wait for a key press. If 'q' is pressed, quit
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# Release webcam and close window
+# Release the webcam and close the window
 cap.release()
 cv2.destroyAllWindows()
 print("Webcam released.")
