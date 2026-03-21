@@ -1,8 +1,9 @@
 # main.py
-# Day 6 - Extract thumb and index fingertip coordinates
+# Day 7 - Calculate distance between thumb and index finger
 
 import cv2
 import mediapipe as mp
+import numpy as np
 import time
 
 # --- MediaPipe Setup ---
@@ -19,6 +20,7 @@ cap = cv2.VideoCapture(0)
 prev_time = 0
 
 print("Hand tracking started. Press 'q' to quit.")
+print("Watch the Distance value — note min and max as you move fingers!")
 
 while True:
     success, frame = cap.read()
@@ -33,18 +35,13 @@ while True:
     # Run hand detection
     results = hands.process(rgb_frame)
 
-    # Get frame dimensions — we need these to convert
-    # landmark percentages into actual pixel positions
+    # Get frame dimensions
     h, w, _ = frame.shape
-    # h = height of frame in pixels
-    # w = width of frame in pixels
-    # _ = number of color channels (3 for BGR) — we don't need this
 
-    # Check if any hand was detected
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
 
-            # Draw all 21 landmarks (same as Day 5)
+            # Draw all 21 landmarks
             mp_draw.draw_landmarks(
                 frame,
                 hand_landmarks,
@@ -53,32 +50,44 @@ while True:
 
             # --- Extract Thumb Tip (Landmark 4) ---
             thumb_tip = hand_landmarks.landmark[4]
-
-            # Convert from percentage (0.0-1.0) to actual pixels
             thumb_x = int(thumb_tip.x * w)
             thumb_y = int(thumb_tip.y * h)
 
             # --- Extract Index Finger Tip (Landmark 8) ---
             index_tip = hand_landmarks.landmark[8]
-
-            # Convert from percentage to actual pixels
             index_x = int(index_tip.x * w)
             index_y = int(index_tip.y * h)
 
-            # --- Draw a circle on Thumb Tip ---
-            # cv2.circle(image, center, radius, color, thickness)
-            # cv2.FILLED means the circle is filled in (not just outline)
+            # --- Draw circles on both fingertips ---
             cv2.circle(frame, (thumb_x, thumb_y), 15, (255, 0, 255), cv2.FILLED)
-
-            # --- Draw a circle on Index Finger Tip ---
             cv2.circle(frame, (index_x, index_y), 15, (255, 0, 255), cv2.FILLED)
 
-            # --- Draw a line between the two fingertips ---
+            # --- Draw line between fingertips ---
             cv2.line(frame, (thumb_x, thumb_y), (index_x, index_y), (255, 0, 255), 3)
 
-            # --- Print coordinates to terminal (for debugging) ---
-            # This helps us understand the values we're working with
-            print(f"Thumb: ({thumb_x}, {thumb_y}) | Index: ({index_x}, {index_y})")
+            # --- Calculate Euclidean Distance ---
+            # This is the straight line distance between the two points
+            # numpy's sqrt is cleaner than Python's math.sqrt for this
+            distance = np.sqrt(
+                (index_x - thumb_x) ** 2 + (index_y - thumb_y) ** 2
+            )
+
+            # Convert to integer so it displays cleanly
+            distance = int(distance)
+
+            # --- Display distance on screen ---
+            cv2.putText(
+                frame,
+                f"Distance: {distance} px",
+                (10, 70),                     # Below the FPS counter
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1,
+                (255, 255, 0),                # Yellow color
+                2
+            )
+
+            # Also print to terminal so we can observe the range
+            print(f"Distance: {distance}px")
 
     # --- FPS Counter ---
     current_time = time.time()
